@@ -1,0 +1,31 @@
+version: "3"
+services:
+  app:
+    container_name: nodeapp
+    restart: always
+    build: .
+    command: npm start
+    volumes:
+      - ./:/usr/src/simpleapp
+    links:
+      - mongo
+      - redis
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+      - redis
+
+  mongo:
+    container_name: mongo
+    image: mongo
+    volumes:
+      - ./data:/data/db
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis
+    container_name: cache
+    ports:
+      - "6379:6379"
