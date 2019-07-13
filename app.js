@@ -2,10 +2,11 @@ import express from 'express';
 import { config } from 'dotenv';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
+import router from './routes/router';
 
 config();
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 const DB_URL = process.env.DB_URL || 'mongodb://localhost:27017/blogging';
 
 // Database connection
@@ -31,4 +32,4 @@ app.listen(PORT, (error) => {
     console.log(`listening to port ${PORT}`);
   }
 });
-app.get('/', (req, res) => res.send('Hello World!'));
+app.use('/', router);
