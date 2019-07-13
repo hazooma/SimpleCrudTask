@@ -1,8 +1,10 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { config } from 'dotenv';
 import User from '../models/User';
 import { validateRegister, validateLogin } from '../validations/UserValidations';
 
+config();
 const create = (req, res, next) => {
   validateRegister(req.body)
     .then(() => {
@@ -17,7 +19,7 @@ const create = (req, res, next) => {
           else {
             res.json({
               status: 'success',
-              message: 'User added successfully!!!',
+              message: 'User Created successfully!!!',
               data: result,
             });
           }
@@ -25,7 +27,7 @@ const create = (req, res, next) => {
       );
     })
     .catch(er => res.json({
-      status: 'Validation Fail',
+      status: 'Validations Fail !',
       message: er.message,
       data: null,
     }));
@@ -38,9 +40,13 @@ const login = (req, res, next) => {
         if (err) {
           next(err);
         } else if (userInfo && bcrypt.compareSync(req.body.password, userInfo.password)) {
-          const token = jwt.sign({ id: userInfo._id, role: userInfo.role }, 'secretkey', {
-            expiresIn: '2h',
-          });
+          const token = jwt.sign(
+            { id: userInfo._id, role_id: userInfo.role },
+            process.env.SECRET_KEY,
+            {
+              expiresIn: '2h',
+            },
+          );
 
           res.json({
             status: 'success',
