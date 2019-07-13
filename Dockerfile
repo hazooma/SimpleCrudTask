@@ -1,4 +1,4 @@
-FROM node:10.10.0
+FROM node:11
 
 RUN mkdir -p /usr/src/simpleapp
 
