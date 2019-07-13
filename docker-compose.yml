@@ -8,17 +8,15 @@ services:
     volumes:
       - ./:/usr/src/simpleapp
     links:
-      - mongo
       - redis
     ports:
       - "8080:8080"
     depends_on:
-      - mongo
       - redis
 
-  mongo:
-    container_name: mongo
-    image: mongo
+  mongodb:
+    container_name: mongodb
+    image: mongo:4.1.8-xenial
     volumes:
       - ./data:/data/db
     ports:
@@ -26,6 +24,6 @@ services:
 
   redis:
     image: redis
-    container_name: cache
+    container_name: redis
     ports:
       - "6379:6379"
