@@ -1,6 +1,9 @@
-import jwt from 'jsonwebtoken';
 import { config } from 'dotenv';
+import JWTR from 'jwt-redis';
+import redis from 'redis';
 
+const redisClient = redis.createClient(6379, 'redis');
+const jwtr = new JWTR(redisClient);
 config();
 
 const AuthMiddleWare = (req, res, next) => {
@@ -12,7 +15,7 @@ const AuthMiddleWare = (req, res, next) => {
     });
   }
 
-  jwt.verify(req.headers['x-access-token'], process.env.SECRET_KEY, (err, decoded) => {
+  jwtr.verify(req.headers['x-access-token'], process.env.SECRET_KEY, (err, decoded) => {
     if (err) {
       res.json({
         status: 'error',
@@ -22,7 +25,6 @@ const AuthMiddleWare = (req, res, next) => {
     } else {
       // add user id to request
       req.body.userId = decoded.user_id;
-      req.body.roleId = decoded.role_id;
 
       next();
     }

@@ -25,8 +25,9 @@ const userSchema = new Schema(
       trim: true,
     },
     role: {
-      type: Schema.Types.ObjectId,
-      ref: 'Role',
+      type: String,
+      enum: ['blogger', 'admin'],
+      default: 'blogger',
     },
     posts: [
       {
