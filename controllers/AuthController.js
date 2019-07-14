@@ -1,12 +1,11 @@
 import { config } from 'dotenv';
 import bcrypt from 'bcrypt';
 import redis from 'redis';
-import JWTR from 'jwt-redis';
+import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import { validateRegister, validateLogin } from '../validations/UserValidations';
 
 const redisClient = redis.createClient(6379, 'redis');
-const jwtr = new JWTR(redisClient);
 config();
 
 const create = (req, res, next) => {
@@ -51,37 +50,45 @@ const create = (req, res, next) => {
 };
 
 const login = (req, res, next) => {
-  validateLogin(req.body)
-    .then(() => {
-      User.findOne({ email: req.body.email }, (err, userInfo) => {
-        if (err) {
-          next(err);
-        } else if (userInfo && bcrypt.compareSync(req.body.password, userInfo.password)) {
-          jwtr
-            .sign({ user_id: userInfo._id }, process.env.SECRET_KEY, {
-              expiresIn: '2h',
-            })
-            .then((token) => {
-              res.json({
-                status: 'success',
-                message: 'user found !',
-                data: { user: userInfo, token },
-              });
+  validateLogin(req.body).then(() => {
+    User.findOne({ email: req.body.email }, (err, userInfo) => {
+      if (err) {
+        next(err);
+      } else if (userInfo && bcrypt.compareSync(req.body.password, userInfo.password)) {
+        jwt.sign({ user_id: userInfo._id }, process.env.SECRET_KEY, (error, token) => {
+          if (error) {
+            res.json({
+              status: 'Fail',
+              message: 'Failed creating Token !',
+              data: null,
             });
-        } else {
+          }
+          redisClient.set(token, 'logged');
           res.json({
-            status: 'error',
-            message: 'Invalid email/password!!!',
-            data: null,
+            status: 'success',
+            message: 'user found !',
+            data: { user: userInfo, token },
           });
-        }
-      });
-    })
-    .catch(er => res.json({
-      status: 'Validation Fail',
-      message: er.message,
-      data: null,
-    }));
+        });
+      } else {
+        res.json({
+          status: 'error',
+          message: 'Invalid email/password!!!',
+          data: null,
+        });
+      }
+    });
+  });
 };
 
-export { create, login };
+const logout = (req, res) => {
+  redisClient.del(req.body.token, (err, reply) => {
+    res.json({
+      status: 'success',
+      message: 'Logged Out  !',
+      data: null,
+    });
+  });
+};
+
+export { create, login, logout };
